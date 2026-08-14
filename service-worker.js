@@ -10,11 +10,6 @@ const PRECACHE_URLS = [
   './css/style.css',
   './js/app.js',
   './data/vocabulary.json',
-  // './assets/images/favicon.png',
-  // './assets/images/icon-192.png',
-  // './assets/images/icon-512.png',
-  // './assets/images/icon-180.png',
-  // './assets/images/logo-icon.svg'
   './assets/images/logo.png'
 ];
 
