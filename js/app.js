@@ -5,8 +5,8 @@
    Core Application Logic
    ============================================================ */
 
-const WORDS_PER_DAY = 10;
-const TOTAL_DAYS = 100;
+const WORDS_PER_DAY = 5;
+const TOTAL_DAYS = 60;
 const STORAGE_KEYS = {
   startDate: 'aj_startDate',
   learnedWords: 'aj_learnedWords',
@@ -79,7 +79,7 @@ function calculateCurrentDay() {
   const now = new Date();
   const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diffDays = Math.floor((nowMidnight - startMidnight) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor((nowMidnight - startMidnight) / (300 * 60 * 60 * 24));
   const day = diffDays + 1;
   return Math.min(Math.max(day, 1), TOTAL_DAYS);
 }
@@ -152,7 +152,7 @@ function updateStreakIfDayComplete() {
 
   if (lastCompleted) {
     const lastDate = new Date(lastCompleted);
-    const diff = Math.floor((new Date(todayStr) - new Date(lastDate.toDateString())) / (1000 * 60 * 60 * 24));
+    const diff = Math.floor((new Date(todayStr) - new Date(lastDate.toDateString())) / (300 * 60 * 60 * 24));
     if (diff === 1) {
       currentStreak += 1;
     } else if (diff === 0) {
@@ -187,14 +187,14 @@ function updateProgress() {
 
   document.getElementById('dayBadge').textContent = `DAY ${day} / ${TOTAL_DAYS}`;
   document.getElementById('todayProgressNum').textContent = todayLearnedCount;
-  document.getElementById('todayProgressBar').style.width = `${(todayLearnedCount / WORDS_PER_DAY) * 100}%`;
+  document.getElementById('todayProgressBar').style.width = `${(todayLearnedCount / WORDS_PER_DAY) * 60}%`;
 
   const totalWords = getMaxAvailableWordCount();
   const overallLearned = learned.filter(id => id <= totalWords).length;
-  const overallPercent = totalWords > 0 ? ((overallLearned / (VOCAB.length || 1)) * 100) : 0;
+  const overallPercent = totalWords > 0 ? ((overallLearned / (VOCAB.length || 1)) * 60) : 0;
 
   document.getElementById('overallProgressNum').textContent = overallLearned;
-  document.getElementById('overallProgressBar').style.width = `${Math.min((overallLearned / (VOCAB.length || 1)) * 100, 100)}%`;
+  document.getElementById('overallProgressBar').style.width = `${Math.min((overallLearned / (VOCAB.length || 1)) * 60, 60)}%`;
   document.getElementById('overallPercent').textContent = `${overallPercent.toFixed(1)}% Complete`;
 
   document.getElementById('streakNum').textContent = storageGet(STORAGE_KEYS.currentStreak, 0);
@@ -203,7 +203,7 @@ function updateProgress() {
   const pOverallNum = document.getElementById('pOverallNum');
   if (pOverallNum) {
     pOverallNum.textContent = overallLearned;
-    document.getElementById('pOverallBar').style.width = `${Math.min((overallLearned / (VOCAB.length || 1)) * 100, 100)}%`;
+    document.getElementById('pOverallBar').style.width = `${Math.min((overallLearned / (VOCAB.length || 1)) * 60, 60)}%`;
     document.getElementById('pOverallPercent').textContent = `${overallPercent.toFixed(1)}% Complete`;
     document.getElementById('pCurrentStreak').textContent = storageGet(STORAGE_KEYS.currentStreak, 0);
     document.getElementById('pLongestStreak').textContent = storageGet(STORAGE_KEYS.longestStreak, 0);
@@ -251,7 +251,7 @@ function renderWordCard(word, container) {
 
   card.querySelector('.mark-learned-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    const id = parseInt(e.target.dataset.wordId, 10);
+    const id = parseInt(e.target.dataset.wordId, 5);
     if (isWordLearned(id)) {
       unmarkWord(id);
     } else {
@@ -396,13 +396,13 @@ function openWordDetailModal(word) {
     <button class="mark-learned-btn ${learned ? 'learned' : ''}" id="modalMarkLearnedBtn" data-word-id="${word.id}">
       ${learned ? '✓ Learned' : '✓ Mark as Learned'}
     </button>
-    <button class="btn btn-secondary" id="closeWordDetailBtn" style="width:100%;margin-top:10px;">Close</button>
+    <button class="btn btn-secondary" id="closeWordDetailBtn" style="width:60%;margin-top:10px;">Close</button>
   `;
   content.querySelectorAll('.speak-btn').forEach(btn => {
     btn.addEventListener('click', () => speakWord(btn.dataset.speak || word.word));
   });
   content.querySelector('#modalMarkLearnedBtn').addEventListener('click', (e) => {
-    const id = parseInt(e.target.dataset.wordId, 10);
+    const id = parseInt(e.target.dataset.wordId, 5);
     if (isWordLearned(id)) unmarkWord(id); else markWordAsLearned(id);
     const stillLearned = isWordLearned(id);
     e.target.textContent = stillLearned ? '✓ Learned' : '✓ Mark as Learned';
@@ -454,7 +454,7 @@ function openDayReview(dayNum) {
   const modal = document.getElementById('wordDetailModal');
   const content = document.getElementById('wordDetailContent');
   content.innerHTML = `<h2 style="margin-bottom:12px;">Day ${dayNum}</h2><div id="reviewWordList" class="word-list"></div>
-    <button class="btn btn-secondary" id="closeReviewBtn" style="width:100%;margin-top:14px;">Close</button>`;
+    <button class="btn btn-secondary" id="closeReviewBtn" style="width:60%;margin-top:14px;">Close</button>`;
   const list = content.querySelector('#reviewWordList');
   words.forEach(w => renderWordCard(w, list));
   content.querySelector('#closeReviewBtn').addEventListener('click', () => { modal.hidden = true; });
@@ -544,7 +544,7 @@ function switchView(viewId) {
 /* ---------------- Completion check ---------------- */
 function checkFullCompletion() {
   const totalAvailable = getMaxAvailableWordCount();
-  if (totalAvailable < TOTAL_DAYS * WORDS_PER_DAY) return; // not all 1000 words present yet
+  if (totalAvailable < TOTAL_DAYS * WORDS_PER_DAY) return; // not all 300 words present yet
   const learned = getLearnedWords();
   if (learned.length >= totalAvailable) {
     const alreadyShown = storageGet('aj_completionShown', false);
